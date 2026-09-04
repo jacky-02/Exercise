@@ -1,458 +1,191 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>公司法双语检索</title>
-    <style>
-        /* CSS：负责页面的颜值和布局 */
-        :root {
-            --primary-color: #117C0D; /* 这里改为了你要求的主题绿 */
-            --bg-color: #F1ECE0;      /* 这里改为了你要求的背景色 */
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --border-radius: 8px;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        h1 {
-            color: var(--primary-color);
-            text-align: center;
-        }
-
-        /* 顶部搜索栏样式 */
-        .search-container {
-            margin-bottom: 30px;
-            display: flex;
-            gap: 10px;
-        }
-
-        input[type="number"], input[type="text"] {
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            outline: none;
-        }
-
-        input[type="number"]:focus, input[type="text"]:focus {
-            border-color: var(--primary-color);
-        }
-
-        button {
-            padding: 12px 24px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #1a252f;
-        }
-
-        /* 主体内容区：左侧法条，右侧生词本 */
-        .main-content {
-            display: flex;
-            width: 100%;
-            max-width: 1200px;
-            gap: 20px;
-            align-items: flex-start;
-        }
-
-        .law-container {
-            flex: 2; /* 占据2份宽度 */
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .law-cards {
-            display: flex;
-            gap: 20px;
-        }
-
-        .card {
-            flex: 1;
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            line-height: 1.8;
-            font-size: 15px;
-        }
-
-        .card h3 {
-            margin-top: 0;
-            color: var(--primary-color);
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .vocab-container {
-            flex: 1; /* 占据1份宽度 */
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            position: sticky; /* 让生词本在页面滚动时停留在右侧 */
-            top: 20px;
-        }
-
-        .vocab-input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .vocab-input-group input {
-            flex: 1;
-        }
-
-        .vocab-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .vocab-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-      .delete-btn {
-            background-color: #FAC75E; /* 你要求的删除键颜色 */
-            color: #333333; /* 因为按钮变成了较浅的黄色，把文字改成深色更容易看清 */
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-
-        .delete-btn:hover {
-            background-color: #e5b249; /* 鼠标放上去时的颜色，稍微加深一点点 */
-        }
-
-        .error-msg {
-            color: #e74c3c;
-            font-weight: bold;
-            text-align: center;
-            padding: 20px;
-        }
-
-        /* 响应式设计：在小屏幕（如手机）上变为上下排版 */
-        @media (max-width: 800px) {
-            .main-content, .law-cards {
-                flex-direction: column;
-            }
-            .vocab-container {
-                position: static;
-                width: calc(100% - 50px);
-            }
-        }
-        /* 弹窗及收藏按钮样式 */
-        .modal {
-            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
-            width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);
-        }
-        .modal-content {
-            background-color: var(--card-bg);
-            margin: 10% auto; padding: 20px;
-            width: 80%; max-width: 400px;
-            border-radius: var(--border-radius);
-            position: relative;
-        }
-        .close-btn {
-            position: absolute; right: 20px; top: 15px;
-            font-size: 24px; cursor: pointer; color: #888;
-        }
-        .close-btn:hover { color: #333; }
-        .fav-list { list-style: none; padding: 0; max-height: 300px; overflow-y: auto; }
-        .fav-item {
-            padding: 12px; border-bottom: 1px solid #eee;
-            cursor: pointer; transition: background 0.2s;
-        }
-        .fav-item:hover { background-color: #f9f9f9; color: var(--primary-color); font-weight: bold;}
-        .star-btn {
-            background-color: transparent; color: var(--primary-color);
-            border: 2px solid var(--primary-color); font-weight: bold;
-            margin-bottom: 15px; width: fit-content;
-        }
-        .star-btn:hover { background-color: var(--primary-color); color: white; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="可导入、可备份、local-first 的双语学习资料阅读器" />
+  <title>Exercise V2 · Local-first 学习器</title>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-
-    <h1>公司法双语检索</h1>
-    
-   <!-- 顶部检索区 -->
-    <div class="search-container">
-        <input type="number" id="articleInput" placeholder="输入法条序号，如：1" min="1">
-        <button onclick="searchArticle()">查询法条</button>
-        <button onclick="openFavModal()" style="background-color: var(--primary-color);">📂 我的收藏</button>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">E2</div>
+      <div>
+        <h1>Exercise V2</h1>
+        <p>Local-first 内容学习器</p>
+      </div>
     </div>
 
-    <!-- 收藏弹窗 (默认隐藏) -->
-    <div id="favModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeFavModal()">&times;</span>
-            <h3 style="margin-top:0; color:var(--primary-color);">我的收藏法条</h3>
-            <ul id="favModalList" class="fav-list"></ul>
-        </div>
+    <div class="header-actions">
+      <button class="ghost-btn" id="favoritesBtn">★ 收藏</button>
+      <button class="ghost-btn" id="libraryBtn">资料库</button>
+      <button class="ghost-btn" id="settingsBtn">设置</button>
     </div>
+  </header>
 
-    <!-- 主体内容区 -->
-    <div class="main-content">
-        
-        <!-- 左侧：法条展示区 -->
-        <div class="law-container">
-            <div id="errorMsg" class="error-msg"></div>
-            <!-- 法条卡片默认隐藏，查询成功后显示 -->
-            <button id="starBtn" class="star-btn" style="display: none;" onclick="toggleFavorite()">⭐ 收藏本条</button>
-            <div class="law-cards" id="lawCards" style="display: none;">
-                <div class="card">
-                    <h3>中文</h3>
-                    <p id="cnText"></p>
-                </div>
-                <div class="card">
-                    <h3>English</h3>
-                    <p id="enText"></p>
-                </div>
-            </div>
+  <main class="shell">
+    <section class="toolbar panel">
+      <label class="field compact-field">
+        <span>资料库</span>
+        <select id="datasetSelect" aria-label="选择资料库"></select>
+      </label>
+
+      <label class="field search-field">
+        <span>检索</span>
+        <input id="searchInput" type="search" placeholder="输入条号、关键词或英文，如：15 / 担保 / shareholder" autocomplete="off" />
+      </label>
+
+      <button id="searchBtn">搜索</button>
+    </section>
+
+    <section class="workspace">
+      <div class="content-column">
+        <div id="statusBar" class="status-bar" aria-live="polite"></div>
+
+        <div id="searchResults" class="search-results panel hidden"></div>
+
+        <article id="reader" class="reader panel empty-state">
+          <div class="empty-illustration">⌕</div>
+          <h2>选择资料库后开始检索</h2>
+          <p>支持条号、标题和全文关键词。所有数据默认保存在本机浏览器。</p>
+        </article>
+
+        <div id="readerActions" class="reader-actions hidden">
+          <button id="favoriteCurrentBtn" class="outline-btn">☆ 收藏当前条目</button>
+          <button id="copyCurrentBtn" class="outline-btn">复制当前条目</button>
         </div>
+      </div>
 
-        <!-- 右侧：生词本区 -->
-        <div class="vocab-container">
-            <h3 style="margin-top: 0; color: var(--primary-color);">📖 我的生词本</h3>
-          <div class="vocab-input-group" style="flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="vocabInput" placeholder="输入生词 (如: shareholder)">
-                <input type="text" id="meaningInput" placeholder="输入意思 (如: 股东)">
-                <button onclick="addVocab()">保存</button>
-            </div>
-            <ul class="vocab-list" id="vocabList">
-                <!-- 生词列表将由JS动态生成在这里 -->
-            </ul>
+      <aside class="side-column">
+        <section class="panel side-card">
+          <div class="side-heading">
+            <h2>笔记</h2>
+            <span id="noteContext" class="context-label">未选择条目</span>
+          </div>
+          <textarea id="noteInput" rows="8" placeholder="选择一个条目后，可以写下自己的笔记……" disabled></textarea>
+          <div class="muted-note">自动保存在 IndexedDB 中。</div>
+        </section>
+
+        <section class="panel side-card">
+          <div class="side-heading">
+            <h2>生词本</h2>
+            <span id="vocabCount" class="context-label">0</span>
+          </div>
+          <div class="vocab-form">
+            <input id="vocabWordInput" type="text" placeholder="word / phrase" />
+            <input id="vocabMeaningInput" type="text" placeholder="释义" />
+            <button id="addVocabBtn">保存生词</button>
+          </div>
+          <ul id="vocabList" class="vocab-list"></ul>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <dialog id="libraryDialog" class="app-dialog wide-dialog">
+    <form method="dialog" class="dialog-frame">
+      <div class="dialog-header">
+        <div>
+          <h2>资料库与数据</h2>
+          <p>导入内容包、备份用户数据或导出当前资料库。</p>
         </div>
-    </div>
+        <button class="icon-btn" value="cancel" aria-label="关闭">×</button>
+      </div>
 
-    <script src="data.js"></script>
-    <script>
-        // 记录当前正在查看的法条序号
-        let currentArticleNum = null;
+      <div class="dialog-grid">
+        <section class="dialog-section">
+          <h3>导入资料</h3>
+          <p class="help">支持 JSON Content Pack、CSV、Markdown。也可以直接粘贴文本。</p>
+          <input id="importFileInput" type="file" accept=".json,.csv,.md,.markdown,text/plain,application/json,text/csv" />
+          <textarea id="pasteImportInput" rows="9" placeholder="或粘贴 JSON / CSV / Markdown 内容"></textarea>
+          <div class="row-actions">
+            <button type="button" id="importContentBtn">导入</button>
+            <button type="button" id="downloadTemplateBtn" class="outline-btn">下载模板</button>
+          </div>
+          <div id="importStatus" class="inline-status"></div>
+        </section>
 
-        // 2. 检索法条功能
-        function searchArticle() {
-            const inputVal = document.getElementById('articleInput').value;
-            const errorMsg = document.getElementById('errorMsg');
-            const lawCards = document.getElementById('lawCards');
-            const cnText = document.getElementById('cnText');
-            const enText = document.getElementById('enText');
-            const starBtn = document.getElementById('starBtn');
+        <section class="dialog-section">
+          <h3>当前资料库</h3>
+          <div id="datasetInfo" class="dataset-info"></div>
+          <div class="stack-actions">
+            <button type="button" id="exportDatasetBtn" class="outline-btn">导出当前内容包</button>
+            <button type="button" id="deleteDatasetBtn" class="danger-btn">删除当前资料库</button>
+          </div>
 
-            if (!inputVal) {
-                errorMsg.innerText = "请在上方输入法条序号！";
-                lawCards.style.display = "none";
-                starBtn.style.display = "none";
-                return;
-            }
+          <hr />
 
-            const result = companyLawData.find(item => item.article == inputVal);
+          <h3>完整备份</h3>
+          <p class="help">备份包括资料库、收藏、生词、笔记和偏好设置。</p>
+          <div class="stack-actions">
+            <button type="button" id="backupBtn" class="outline-btn">导出完整备份</button>
+            <label class="file-button outline-btn">
+              恢复完整备份
+              <input id="restoreBackupInput" type="file" accept="application/json,.json" hidden />
+            </label>
+          </div>
+          <div id="backupStatus" class="inline-status"></div>
+        </section>
+      </div>
+    </form>
+  </dialog>
 
-            if (result) {
-                currentArticleNum = result.article; 
-                cnText.innerText = `第 ${result.article} 条：\n\n${result.cn}`;
-                enText.innerText = `Article ${result.article}:\n\n${result.en}`;
-                errorMsg.innerText = "";
-                lawCards.style.display = "flex";
-                starBtn.style.display = "block"; // 显示收藏按钮
-                updateStarBtnStatus(); // 更新按钮文字状态
-            } else {
-                errorMsg.innerText = `未找到第 ${inputVal} 条的内容。`;
-                lawCards.style.display = "none";
-                starBtn.style.display = "none";
-            }
-        }
+  <dialog id="favoritesDialog" class="app-dialog">
+    <form method="dialog" class="dialog-frame">
+      <div class="dialog-header">
+        <div>
+          <h2>我的收藏</h2>
+          <p>收藏记录按资料库隔离，不会发生“第 15 条”冲突。</p>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="关闭">×</button>
+      </div>
+      <div id="favoritesList" class="favorites-list"></div>
+    </form>
+  </dialog>
 
-        // --- 新增的法条收藏功能 ---
-        function getFavorites() {
-            const favs = localStorage.getItem('myCompanyLawFavorites');
-            return favs ? JSON.parse(favs) : [];
-        }
+  <dialog id="settingsDialog" class="app-dialog">
+    <form method="dialog" class="dialog-frame">
+      <div class="dialog-header">
+        <div>
+          <h2>阅读设置</h2>
+          <p>这类轻量偏好继续存放在 localStorage。</p>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="关闭">×</button>
+      </div>
 
-        function saveFavorites(favs) {
-            localStorage.setItem('myCompanyLawFavorites', JSON.stringify(favs));
-        }
+      <label class="field">
+        <span>主题</span>
+        <select id="themeSelect">
+          <option value="system">跟随系统</option>
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
+        </select>
+      </label>
 
-        function toggleFavorite() {
-            if (!currentArticleNum) return;
-            let favs = getFavorites();
-            const index = favs.indexOf(currentArticleNum);
-            
-            if (index > -1) {
-                favs.splice(index, 1); // 如果已存在，再次点击则取消收藏
-            } else {
-                favs.push(currentArticleNum); // 如果不存在，则加入收藏
-            }
-            saveFavorites(favs);
-            updateStarBtnStatus();
-        }
+      <label class="field">
+        <span>正文字号 <strong id="fontSizeValue">16px</strong></span>
+        <input id="fontSizeRange" type="range" min="14" max="22" step="1" value="16" />
+      </label>
 
-        function updateStarBtnStatus() {
-            const favs = getFavorites();
-            const btn = document.getElementById('starBtn');
-            if (favs.includes(currentArticleNum)) {
-                btn.innerText = "🌟 已收藏 (点击取消)";
-                btn.style.backgroundColor = "var(--primary-color)";
-                btn.style.color = "white";
-            } else {
-                btn.innerText = "⭐ 收藏本条";
-                btn.style.backgroundColor = "transparent";
-                btn.style.color = "var(--primary-color)";
-            }
-        }
+      <label class="field">
+        <span>字段布局</span>
+        <select id="layoutSelect">
+          <option value="auto">自动</option>
+          <option value="columns">双栏优先</option>
+          <option value="stack">上下排列</option>
+        </select>
+      </label>
+    </form>
+  </dialog>
 
-        function openFavModal() {
-            document.getElementById('favModal').style.display = "block";
-            renderFavModalList();
-        }
+  <template id="resultTemplate">
+    <button class="result-item" type="button">
+      <span class="result-title"></span>
+      <span class="result-snippet"></span>
+    </button>
+  </template>
 
-        function closeFavModal() {
-            document.getElementById('favModal').style.display = "none";
-        }
-
-        function renderFavModalList() {
-            const ul = document.getElementById('favModalList');
-            let favs = getFavorites();
-            ul.innerHTML = "";
-            
-            if (favs.length === 0) {
-                ul.innerHTML = "<li style='color:#888; text-align:center;'>暂无收藏的法条</li>";
-                return;
-            }
-
-            // 按序号从小到大排序展示
-            favs.sort((a, b) => a - b).forEach(num => {
-                const li = document.createElement('li');
-                li.className = "fav-item";
-                li.innerText = `📄 第 ${num} 条`;
-                // 点击弹窗里的条目，自动跳转查询该法条，并关闭弹窗
-                li.onclick = () => {
-                    document.getElementById('articleInput').value = num;
-                    searchArticle();
-                    closeFavModal();
-                };
-                ul.appendChild(li);
-            });
-        }
-
-        // 3. 生词本功能 (带释义版本)
-        document.addEventListener("DOMContentLoaded", renderVocabList);
-
-        // 使用新名称 V2，避免和旧版本数据冲突
-        function getVocabs() {
-            const vocabs = localStorage.getItem('myCompanyLawVocabsV2');
-            return vocabs ? JSON.parse(vocabs) : [];
-        }
-
-        function saveVocabs(vocabs) {
-            localStorage.setItem('myCompanyLawVocabsV2', JSON.stringify(vocabs));
-        }
-
-        function addVocab() {
-            const wordInput = document.getElementById('vocabInput');
-            const meaningInput = document.getElementById('meaningInput');
-            const word = wordInput.value.trim();
-            const meaning = meaningInput.value.trim();
-
-            if (word === "") {
-                alert("生词不能为空！");
-                return;
-            }
-
-            const vocabs = getVocabs();
-            const exists = vocabs.find(v => v.word === word);
-            
-            if (!exists) {
-                // 将单词和意思作为一个整体保存
-                vocabs.push({ word: word, meaning: meaning || "暂无释义" });
-                saveVocabs(vocabs);
-                renderVocabList();
-            } else {
-                alert("这个生词已经存在啦！");
-            }
-            
-            wordInput.value = "";
-            meaningInput.value = "";
-        }
-
-        function deleteVocab(word) {
-            let vocabs = getVocabs();
-            vocabs = vocabs.filter(v => v.word !== word);
-            saveVocabs(vocabs);
-            renderVocabList();
-        }
-
-        function renderVocabList() {
-            const vocabListElement = document.getElementById('vocabList');
-            const vocabs = getVocabs();
-            
-            vocabListElement.innerHTML = ""; 
-
-            if (vocabs.length === 0) {
-                vocabListElement.innerHTML = "<li style='color:#888; justify-content:center;'>暂无生词，遇到不认识的词就存下来吧！</li>";
-                return;
-            }
-
-            vocabs.forEach(item => {
-                const li = document.createElement('li');
-                li.style.flexDirection = "column";
-                li.style.alignItems = "flex-start";
-                li.style.gap = "8px";
-                
-                const topDiv = document.createElement('div');
-                topDiv.style.display = "flex";
-                topDiv.style.justifyContent = "space-between";
-                topDiv.style.width = "100%";
-
-                const wordSpan = document.createElement('span');
-                wordSpan.style.fontWeight = "bold";
-                wordSpan.style.color = "var(--primary-color)";
-                wordSpan.innerText = item.word;
-
-                const btn = document.createElement('button');
-                btn.innerText = "删除";
-                btn.className = "delete-btn";
-                btn.onclick = () => deleteVocab(item.word);
-
-                const meaningSpan = document.createElement('span');
-                meaningSpan.style.fontSize = "14px";
-                meaningSpan.style.color = "#555";
-                meaningSpan.innerText = "💡 " + item.meaning;
-
-                topDiv.appendChild(wordSpan);
-                topDiv.appendChild(btn);
-                li.appendChild(topDiv);
-                li.appendChild(meaningSpan);
-                
-                vocabListElement.appendChild(li);
-            });
-        }
-    </script>
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
