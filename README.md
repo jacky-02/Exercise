@@ -22,8 +22,8 @@
 Exercise-V2/
 ├─ index.html
 ├─ styles.css
+├─ data.js                      # 旧公司法数据，仅作为首次启动种子
 ├─ data/
-│  ├─ company-law.json
 │  └─ content-pack.schema.json
 ├─ examples/
 │  ├─ example.csv
@@ -36,6 +36,8 @@ Exercise-V2/
 │  └─ import-export.test.mjs
 └─ package.json
 ```
+
+> 当前 fork 为兼容原项目，暂时保留根目录 `data.js`。V2 首次启动时会读取它、转换为标准 Content Pack 并写入 IndexedDB；收藏、生词、笔记和后续导入内容都不会继续写回 `data.js`。
 
 ## Content Pack v1
 
@@ -111,7 +113,7 @@ English content...
 
 ## 本地运行
 
-浏览器不允许从 `file://` 直接 `fetch` 内置 JSON，因此请通过任意静态 HTTP Server 打开：
+浏览器不允许从 `file://` 直接加载 ES module / fetch 资源，因此请通过任意静态 HTTP Server 打开：
 
 ```bash
 python -m http.server 8000
